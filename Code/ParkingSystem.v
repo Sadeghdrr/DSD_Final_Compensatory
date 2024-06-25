@@ -3,14 +3,14 @@ module ParkingSystem (
     input is_uni_car_entered,
     input car_exited,
     input is_uni_car_exited,
+    input [4:0] hour,
     output reg signed [9:0] uni_parked_car = 0,
     output reg signed [9:0] free_parked_car = 0,
     output signed [9:0] uni_vacated_space,
     output signed [9:0] free_vacated_space,
     output uni_is_vacated_space,
     output free_is_vacated_space,
-    output parking_is_vacated_space,
-    output reg [4:0] hour = 0
+    output parking_is_vacated_space
 );
 
 localparam PARKING_SIZE = 700;
@@ -25,20 +25,13 @@ assign parking_is_vacated_space = uni_vacated_space + free_vacated_space > 0;
 assign uni_is_vacated_space = uni_vacated_space > 0 && parking_is_vacated_space;
 assign free_is_vacated_space = free_vacated_space > 0 && parking_is_vacated_space;
 
-
-always begin
-    if (hour >= 24)
-        hour = 0;
-    
+always @(hour) begin
     if (hour >= 8 && hour < 13)
         uni_space = 500;
     else if (hour >= 13 && hour < 16) 
         uni_space = PARKING_SIZE - 200 - (hour - 12) * 50;
     else
         uni_space = 200;
-        
-    #200
-    hour = hour + 1;
 end
 
 always @(negedge car_entered) begin
@@ -53,7 +46,7 @@ always @(negedge car_entered) begin
 end
 
 always @(negedge car_exited) begin
-        case (is_uni_car_exited)
+    case (is_uni_car_exited)
         1: 
             if (uni_parked_car > 0)
                 uni_parked_car <= uni_parked_car - 1;
@@ -62,7 +55,6 @@ always @(negedge car_exited) begin
                 free_parked_car <= free_parked_car - 1;
     endcase
 end
-
 
 
 endmodule
